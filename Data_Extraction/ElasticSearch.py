@@ -6,9 +6,10 @@ import json
 from decimal import *
 from urllib.parse import quote
 import socket
+from requests_aws4auth import AWS4Auth
 
 # yelp api details
-API_KEY = "<API_KEY>"
+API_KEY = "zzpSaWnpzO_sPbwiJRdjvwfISj0jfMDn6CZT-eFjS_1xJl3hyR4HeI2h0n-2F2mGGptGazqMHR6DUQ4GGnBmmSUEvV-OHosTzmCnWz3l4v9jOyw_FzlodI5v_OoYYnYx"
 API_HOST = 'https://api.yelp.com'
 SEARCH_PATH = '/v3/businesses/search'
 BUSINESS_PATH = '/v3/businesses/'  # Business ID will come after slash.
@@ -68,14 +69,18 @@ def handle_response(businesses, cuisine):
 
 # function to push data into dynamoDB
 def push_data(businesses):
+    access_key='<ACCESS_KEY>'
+    secret_key='<SECRET_KEY>'
+    token='<TOKEN>'
+    awsauth = AWS4Auth(access_key, secret_key, 'us-east-1', 'es', session_token=token)
     for business in businesses:
         payload = business
         my_es_id = payload["Business ID"]
         print("try")
-        r = requests.post(url+str(my_es_id), json=payload, headers=headers)
+        r = requests.post(url+str(my_es_id), auth = awsauth, json=payload, headers=headers)
         print(r.text)
 
-cuisines =     cuisines = ['indian', 'italian', 'chinese', 'vietnamese', 'mexican', 'French', 'Thai', 'Burmese', 'Japanese', 'Persian', 'Turkish']
+cuisines =     cuisines = ['Turkish']
 
 manhattan_neighbourhoods = ['Lower East Side, Manhattan',
                    'Upper East Side, Manhattan',
