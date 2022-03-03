@@ -9,7 +9,7 @@ import socket
 from requests_aws4auth import AWS4Auth
 
 # yelp api details
-API_KEY = "zzpSaWnpzO_sPbwiJRdjvwfISj0jfMDn6CZT-eFjS_1xJl3hyR4HeI2h0n-2F2mGGptGazqMHR6DUQ4GGnBmmSUEvV-OHosTzmCnWz3l4v9jOyw_FzlodI5v_OoYYnYx"
+API_KEY = "<API_KEY>"
 API_HOST = 'https://api.yelp.com'
 SEARCH_PATH = '/v3/businesses/search'
 BUSINESS_PATH = '/v3/businesses/'  # Business ID will come after slash.
