@@ -40,7 +40,7 @@ def handle_greeting_intent(event):
                 "type": "ElicitIntent",
                 'message': {
                     'contentType': 'PlainText',
-                    'content': 'Hi there, how can I help?'}
+                    'content': 'Hi there! I hope you are doing well toay! How can I help?'}
             }
         }
         
@@ -112,7 +112,7 @@ def isvalid_email(email):
 def validate_dining_suggestion(cuisine, noofPeople, date, time, location, email):
     
     cuisines = ['indian', 'italian', 'chinese', 'vietnamese', 'mexican',
-                'french', 'thai', 'burmese', 'japanese', 'persian', 'turkish']
+                'french', 'thai', 'japanese', 'turkish']
 
     if cuisine is not None and cuisine.lower() not in cuisines:
         return build_validation_result(False,
@@ -131,29 +131,38 @@ def validate_dining_suggestion(cuisine, noofPeople, date, time, location, email)
                                            'There cannot be less than zero people dining, please try again.')
 
     if date is not None:
-        check1=datetime.datetime.strptime(date, '%Y-%m-%d').date()
-        check2=datetime.date.today()
-        print('#############check1', check1)
-        print('#############check2', check2)
         if (isvalid_date(date) == False):
             return build_validation_result(False,
                                            'Date',
                                            'I did not understand that, what date would you like to go dining?')
-        elif datetime.datetime.strptime(date, '%Y-%m-%d').date() <= datetime.date.today():
+        elif datetime.datetime.strptime(date, '%Y-%m-%d').date() < datetime.date.today():
             return build_validation_result(False, 'Date', 'You cannot choose a date from the past, please try again.')
 
     if time is not None:
         if len(time) != 5:
             return build_validation_result(False, 'Time', 'Not a valid time, please try again.')
-
+        
         hour, minute = time.split(':')
         hour = parse_int(hour)
         minute = parse_int(minute)
+        
+        now = datetime.datetime.now()
+        currentHour = now.hour
+        currentMinute = now.minute
+        
         if math.isnan(hour) or math.isnan(minute):
             return build_validation_result(False, 'Time', 'Not a valid time, please try again.')
 
         if hour < 10 or hour > 22:
             return build_validation_result(False, 'Time', 'Valid booking hours are from 10am to 10pm, please specify a time in this interval.')
+            
+        if hour < 0 or hour > 24:
+            return build_validation_result(False, 'Time', 'Time cannot be less than 00:00 and greater than 24:00')
+            
+        if ((datetime.datetime.strptime(date, '%Y-%m-%d').date() == datetime.date.today()) 
+        and hour <= currentHour 
+        and minute < currentMinute):
+            return build_validation_result(False, 'Time', 'Please pick a time greater than the current time')
 
     if location is not None:
         if len(location) < 1:
@@ -224,25 +233,10 @@ def handle_dining_suggestion_intent(event):
         'Fulfilled',
         {'contentType': 'PlainText',
         'content': 'Great! You will receive your suggestion shortly.'})
-    
-    #queue_message = {"cuisine": cuisine, "phoneNumber": phoneNumber, "email": email, "location": location,
-    #                 "noofPeople": noofPeople, "date": date, "time": time}
-    #sqs = boto3.client('sqs',endpoint_url="https://sqs.us-east-1.amazonaws.com")
-    #response = sqs.send_message(
-    #    QueueUrl="https://sqs.us-east-1.amazonaws.com/644169909224/restaurantRequests",
-    #    MessageBody=json.dumps(queue_message))
-    #print("checking after:",response)
-    #print(queue_message)
-    #return close(event['sessionAttributes'],
-    #             'Fulfilled',
-    #             {'contentType': 'PlainText',
-    #              'content': 'You’re all set. Expect my suggestions shortly! Have a good day.'})
-
+        
+        
 # lambda handler and dispatching intent funtions
-
 # function to handle the different intents
-
-
 def dispatch(event):
 
     logger.debug(
@@ -259,8 +253,8 @@ def dispatch(event):
 
     raise Exception('Intent with name ' + intent_type + ' not supported')
 
+
 def lambda_handler(event, context):
-    
     os.environ['TZ'] = 'America/New_York'
     time.tzset()
     logger.debug('event.bot.name={}'.format(event['bot']['name']))
