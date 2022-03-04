@@ -2,7 +2,6 @@ import boto3
 import json
 import random
 from boto3.dynamodb.conditions import Key
-#from botocore.vendored import requests
 import requests
 from requests_aws4auth import AWS4Auth
 from datetime import datetime
@@ -11,17 +10,18 @@ from datetime import datetime
 credentials = boto3.Session().get_credentials()
 authent = AWS4Auth(credentials.access_key, credentials.secret_key, 'us-east-1', 'es', session_token=credentials.token)
 
+
 # connect to the dynamoDB table
 dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
 table = dynamodb.Table('yelp-restaurants')
 table2 = dynamodb.Table('restaurantSuggestionStore')
+
 # function to generate the suggestions message
 def generate_suggestions(randomIds, cuisine, queue_message):
     restaurantIds = []
     dynamoDBResponses = []
     for id in randomIds:
         # get elastic search results for the random restaurant
-        #url2 = 'https://search-restaurant-2xxoafusnhkyn4gmypsml2uzd4.us-east-1.es.amazonaws.com/restaurants/_search?from=' + str(id) + '&&size=1&&q=cuisine:' + cuisine
         url2 = 'https://search-restaurant-gkgknrtvkb4drescojoawsqwnm.us-east-1.es.amazonaws.com/restaurants/_search?from=' + str(id) + '&&size=1&&q=cuisine:' + cuisine
         random_elastic_response = requests.get(url2, auth = authent, headers={"Content-Type": "application/json"}).json()
         restaurantIds.append(random_elastic_response['hits']['hits'][0]['_source']['Business ID'])
@@ -54,7 +54,7 @@ def format_response(responses, message):
         restaurantSuggestions += suggestion+'\n'
 
     # make the message
-    reply = 'Hello! \nHere is my {} Restaurant Suggestions for {} People, on {} at {}:\n'.format(cuisine, numberOfPeople, date, time) + restaurantSuggestions + '\nEnjoy your meal!\n\nRegards,\nDining Concierge'
+    reply = 'Hello! \nHere are my {} Restaurant Suggestions for {} People, on {} at {}:\n'.format(cuisine, numberOfPeople, date, time) + restaurantSuggestions + '\nHope you enjoy your meal!\n\nRegards,\nDining Concierge'
     return reply, restaurantSuggestions
 
 
@@ -143,6 +143,7 @@ def handle_queue_item():
             email=js['email']
             print("Received email address : ")
             print(email)
+            
             # send the message
             send_plain_email('yashikadhawan123@gmail.com', [email], str(output))
 
